@@ -280,7 +280,7 @@ void GradienteConjugado(double **M, int m, int n, double *x0, double tol)
 
 int main(int argc, char **argv) 
 {
-  double **M, *v, *b, dx, tol=1e-8;
+  double **M, *v, *b, dx, tol=1e-2;
   int i, m, n, l, it=0, p=2;
   
   M=LeMatriz("m.dat", &m, &n);
