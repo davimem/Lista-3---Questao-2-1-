@@ -118,39 +118,6 @@ double ProdInt(double *V, int m, double *W)
   return t;
 }
 
-double Jacobi(double **M, int m, int n, double *v, int p)
-{
-  double *aux, *dif, *b, dx=0;
-  int i, j;
-
-  b=calloc(m, sizeof(double));
-  for(i=0; i<m; i++) b[i]=M[i][n-1];
-  
-  dif=calloc(m, sizeof(double));
-  aux=calloc(m, sizeof(double));
-  
-  for(i=0; i<m; i++) 
-  {
-    aux[i]=b[i];
-    
-    for(j=0; j<n-1; j++)
-    {
-      if(i==j)continue;
-      aux[i]-= (M[i][j]* v[j]);
-    }
-    aux[i]/=M[i][i];
-  }
-  
-  for(i=0; i<m; i++)
-  { 
-    dif[i]=fabs(aux[i]-v[i]); 
-    v[i]=aux[i];
-  }
-
-  dx=NormaVetor(dif, m, p);
-  return dx;
-}
-
 double Gauss(double **M, int m, int n, double *v, int p)
 {
   double *aux, *dif, *b, dx=0;
@@ -184,7 +151,40 @@ double Gauss(double **M, int m, int n, double *v, int p)
   return dx;
 }
 
-void Gradiente(double **M, int m, int n, double *x0, double tol)
+double Jacobi(double **M, int m, int n, double *v, int p)
+{
+  double *aux, *dif, *b, dx=0;
+  int i, j;
+
+  b=calloc(m, sizeof(double));
+  for(i=0; i<m; i++) b[i]=M[i][n-1];
+  
+  dif=calloc(m, sizeof(double));
+  aux=calloc(m, sizeof(double));
+  
+  for(i=0; i<m; i++) 
+  {
+    aux[i]=b[i];
+    
+    for(j=0; j<n-1; j++)
+    {
+      if(i==j)continue;
+      aux[i]-= (M[i][j]* v[j]);
+    }
+    aux[i]/=M[i][i];
+  }
+  
+  for(i=0; i<m; i++)
+  { 
+    dif[i]=fabs(aux[i]-v[i]); 
+    v[i]=aux[i];
+  }
+
+  dx=NormaVetor(dif, m, p);
+  return dx;
+}
+
+double *Gradiente(double **M, int m, int n, double *x0, double tol)
 {
   double *r, *b, l=0;
   int i, it=1;
@@ -224,9 +224,11 @@ void Gradiente(double **M, int m, int n, double *x0, double tol)
     
     it++;
   }while(NormaVetor(r,m,2)>tol);
+
+  return x0;
 }
 
-void GradienteConjugado(double **M, int m, int n, double *x0, double tol)
+double *GradienteConjugado(double **M, int m, int n, double *x0, double tol)
 {
   double *r, *d, *b, *Ax, *Ad, rr=0,a=0,bt=0;
   int i, it=1;
@@ -276,32 +278,62 @@ void GradienteConjugado(double **M, int m, int n, double *x0, double tol)
     
     it++;
   }while(NormaVetor(r,m,2)>tol);
+
+  return x0;
 }
 
 int main(int argc, char **argv) 
 {
   double **M, *v, *b, dx, tol=1e-2;
   int i, m, n, l, it=0, p=2;
+  double xe[5]={7.859713071, 0.4229264082, -0.07359223906, -0.5406430164, 0.01062616286};
   
   M=LeMatriz("m.dat", &m, &n);
   v=LeVetor("v.dat",&l);
   
-  GradienteConjugado(M, m, n, v, tol);
-  puts("");
 
-  //Gradiente(M, m, n, v, tol);
-  //puts("");
+  printf("Conjugado:\n");
+  v=GradienteConjugado(M, m, n, v, tol);
+  for(i=0; i<m; i++)v[i]=v[i]-xe[i];
+  printf("%g", NormaVetor(v,m,2));
+
+
+/* 
+  printf("Gradiente:\n");
+  v=Gradiente(M, m, n, v, tol);
+  for(i=0; i<m; i++)v[i]=v[i]-xe[i];
+  printf("%g", NormaVetor(v,m,2));
+*/
   
-  /*
-  //Gauss Seidel
+/*
+  printf("Gauss:\n");
+  it=0;
   do{
     it++;
     dx=Gauss(M, m, n, v, p);
-    printf("%d %g", it, dx);
+    printf("%d", it);
     for(i=0; i<m; i++) printf(" %g",v[i]);
     puts("");
     
   }while (dx>tol);
-  */  
+  for(i=0; i<m; i++)v[i]=v[i]-xe[i];
+  printf("%g", NormaVetor(v,m,2));
+*/
+
+/*
+  printf("Jacobi:\n");
+  it=0;
+  do{
+    it++;
+    dx=Jacobi(M, m, n, v, p);
+    printf("%d", it);
+    for(i=0; i<m; i++) printf(" %g",v[i]);
+    puts("");
+    
+  }while (dx>tol);
+  for(i=0; i<m; i++)v[i]=v[i]-xe[i];
+  printf("%g", NormaVetor(v,m,2));
+*/
+  
   return 0;
 }
